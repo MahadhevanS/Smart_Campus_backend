@@ -19,4 +19,4 @@ RUN chmod +x gradlew
 RUN ./gradlew clean bootJar
 
 # Step 5: Run the application
-ENTRYPOINT ["java", "-jar", "build/libs/smart_campus-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["sh", "-c", "java -jar build/libs/*.jar"]
