@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -83,5 +84,10 @@ public class IssueController {
     @PatchMapping("/{id}/close")
     public ResponseEntity<Issue> closeIssue(@PathVariable Long id) {
         return ResponseEntity.ok(issueService.closeIssue(id));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        return ResponseEntity.ok(issueService.getDashboardStats());
     }
 }

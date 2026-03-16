@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class IssueService {
@@ -60,9 +63,15 @@ public class IssueService {
         
         issue.setStatus(status);
         issue.setUpdatedAt(LocalDateTime.now());
+
+        // --- ADD THIS BLOCK ---
+        if (status == Enums.IssueStatus.RESOLVED) {
+            issue.setResolvedAt(LocalDateTime.now());
+        }
+        // ----------------------
+        
         return issueRepository.save(issue);
     }
-
     // 1. Get all technicians (for the Admin's dropdown)
     public List<Profile> getTechnicians() {
         return profileRepository.findByRole(Enums.UserRole.TECHNICIAN);
@@ -89,5 +98,34 @@ public class IssueService {
         issue.setStatus(Enums.IssueStatus.CLOSED);
         issue.setClosedAt(LocalDateTime.now());
         return issueRepository.save(issue);
+    }
+
+    public Map<String, Object> getDashboardStats() {
+        Map<String, Object> stats = new HashMap<>();
+        List<Issue> allIssues = issueRepository.findAll();
+
+        // 1. Total Counts
+        stats.put("totalIssues", allIssues.size());
+        stats.put("openIssues", allIssues.stream().filter(i -> i.getStatus() == Enums.IssueStatus.REPORTED).count());
+        stats.put("resolvedIssues", allIssues.stream().filter(i -> i.getStatus() == Enums.IssueStatus.CLOSED).count());
+
+        // 2. Issues by Department (for a Pie Chart)
+        Map<String, Long> categoryStats = allIssues.stream()
+            .collect(Collectors.groupingBy(
+                issue -> issue.getCategory().name(), // Use .name() to get the String value of the Enum
+                Collectors.counting()
+            ));
+
+        stats.put("categoryData", categoryStats);
+
+        double avgHours = allIssues.stream()
+            .filter(i -> i.getResolvedAt() != null && i.getCreatedAt() != null)
+            .mapToLong(i -> java.time.Duration.between(i.getCreatedAt(), i.getResolvedAt()).toHours())
+            .average()
+            .orElse(0.0);
+
+        stats.put("avgResolutionTime", Math.round(avgHours * 10.0) / 10.0);
+
+        return stats;
     }
 }
