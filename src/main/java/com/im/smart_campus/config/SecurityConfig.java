@@ -21,7 +21,7 @@ public class SecurityConfig {
                 config.setAllowedOrigins(List.of("https://smart-campus-ims.netlify.app","http://localhost:5173"));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
-                config.setAllowedCredentials(true);
+                config.setAllowCredentials(true);
                 return config;
             }))
             .authorizeHttpRequests(auth -> auth
